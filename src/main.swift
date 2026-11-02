@@ -8,7 +8,38 @@ func dlog(_ m: String) {
 }
 
 var server: IMKServer?
-var vietEnabled = true // dùng chung cho mọi ứng dụng
+var statusItem: NSStatusItem?
+var vietItem: NSMenuItem?
+var engItem: NSMenuItem?
+/// Vẽ biểu tượng khay dạng template: nền bo tròn, chữ đục rỗng (đồng bộ với icon hệ thống)
+func trayIcon(_ text: String) -> NSImage {
+    let size = NSSize(width: 26, height: 16)
+    let img = NSImage(size: size, flipped: false) { rect in
+        let path = NSBezierPath(roundedRect: rect.insetBy(dx: 0.5, dy: 0.5), xRadius: 4.5, yRadius: 4.5)
+        NSColor.black.setFill(); path.fill()
+        NSGraphicsContext.current?.compositingOperation = .clear
+        let str = NSAttributedString(string: text, attributes: [
+            .font: NSFont.systemFont(ofSize: 11, weight: .bold), .kern: 0.3, .foregroundColor: NSColor.black])
+        let sz = str.size()
+        str.draw(at: NSPoint(x: (rect.width - sz.width) / 2, y: (rect.height - sz.height) / 2))
+        return true
+    }
+    img.isTemplate = true
+    return img
+}
+func refreshStatus() {
+    statusItem?.button?.title = ""
+    statusItem?.button?.image = trayIcon(vietEnabled ? "VN" : "EN")
+    vietItem?.state = vietEnabled ? .on : .off
+    engItem?.state = vietEnabled ? .off : .on
+}
+class MenuActions: NSObject {
+    @objc func setViet() { vietEnabled = true }
+    @objc func setEng() { vietEnabled = false }
+    @objc func quit() { NSApp.terminate(nil) }
+}
+let menuActions = MenuActions()
+var vietEnabled = true { didSet { refreshStatus() } } // dùng chung cho mọi ứng dụng
 
 class VietController: IMKInputController {
     var raw: [Character] = []
@@ -65,4 +96,16 @@ class VietController: IMKInputController {
 let name = Bundle.main.infoDictionary?["InputMethodConnectionName"] as? String ?? "VietIME_Connection"
 server = IMKServer(name: name, bundleIdentifier: Bundle.main.bundleIdentifier)
 NSApplication.shared.setActivationPolicy(.accessory)
+statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+let menu = NSMenu()
+vietItem = NSMenuItem(title: "Tiếng Việt (VN)", action: #selector(MenuActions.setViet), keyEquivalent: "")
+engItem = NSMenuItem(title: "English (EN)", action: #selector(MenuActions.setEng), keyEquivalent: "")
+vietItem?.target = menuActions; engItem?.target = menuActions
+menu.addItem(vietItem!); menu.addItem(engItem!)
+menu.addItem(.separator())
+let quitItem = NSMenuItem(title: "Thoát VietIME", action: #selector(MenuActions.quit), keyEquivalent: "")
+quitItem.target = menuActions
+menu.addItem(quitItem)
+statusItem?.menu = menu
+refreshStatus()
 NSApplication.shared.run()
