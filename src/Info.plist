@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>com.truongta.inputmethod.VietIME</string>
+<key>CFBundleDisplayName</key><string>VietIME</string>
+<key>CFBundleDevelopmentRegion</key><string>en</string>
+<key>CFBundleLocalizations</key><array><string>en</string><string>vi</string></array>
+<key>CFBundleName</key><string>VietIME</string>
+<key>CFBundleExecutable</key><string>VietIME</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>1.0</string>
+<key>LSUIElement</key><true/>
+<key>InputMethodConnectionName</key><string>VietIME_Connection</string>
+<key>InputMethodServerControllerClass</key><string>VietIME.VietController</string>
+<key>tsInputMethodIconFileKey</key><string>icon.tiff</string>
+<key>ComponentInputModeDict</key><dict>
+ <key>tsInputModeListKey</key><dict>
+  <key>com.truongta.inputmethod.VietIME.Telex</key><dict>
+   <key>TISInputSourceID</key><string>com.truongta.inputmethod.VietIME.Telex</string>
+   <key>TISIntendedLanguage</key><string>vi</string>
+   <key>tsInputModeScriptKey</key><string>smRoman</string>
+   <key>TISInputSourceName</key><string>VietIME</string>
+   <key>tsInputModeDefaultStateKey</key><true/>
+   <key>tsInputModePrimaryInputModeKey</key><true/>
+   <key>tsInputModeMenuIconFileKey</key><string>icon.tiff</string>
+   <key>tsInputModeKeyEquivalentModifiersKey</key><integer>0</integer>
+  </dict>
+ </dict>
+ <key>tsVisibleInputModeOrderedArrayKey</key><array><string>com.truongta.inputmethod.VietIME.Telex</string></array>
+</dict>
+</dict></plist>
