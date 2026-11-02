@@ -5,7 +5,7 @@ Bộ gõ tiếng Việt (Telex) cho macOS, viết bằng Swift với InputMethod
 ## Tính năng
 - Telex: `s f r x j z` (dấu), `aa ee oo` (â ê ô), `w` (ư ơ ă), `dd` (đ); đặt dấu kiểu hiện đại (`hoà`).
 - Chuyển Việt/Anh bằng **Option + Z**.
-- Biểu tượng VN/EN trên thanh menu, có menu chọn chế độ và thoát.
+- Không có biểu tượng khay riêng; trạng thái hiển thị qua nguồn nhập của macOS.
 
 ## Cài đặt
 ```sh
