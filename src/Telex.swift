@@ -7,7 +7,7 @@ func isV(_ c: Character) -> Bool { "aeiouy".contains(c) }
 struct Telex {
     var letters: [Letter] = []
     var tone = 0 // 0 none,1 sac,2 huyen,3 hoi,4 nga,5 nang
-    var literal: String = "" // appended raw chars that are not Vietnamese letters
+    var toneBlocked = false // đã hủy dấu bằng gõ lặp: các phím dấu sau đó là chữ thường
 
     static let toneKeys: [Character: Int] = ["s": 1, "f": 2, "r": 3, "x": 4, "j": 5]
 
@@ -15,7 +15,13 @@ struct Telex {
         let lc = Character(ch.lowercased())
         let up = ch.isUppercase
         let hasVowel = letters.contains { isV($0.b) }
-        if let t = Telex.toneKeys[lc], hasVowel { tone = t; return }
+        if let t = Telex.toneKeys[lc], hasVowel, !toneBlocked {
+            if tone == t { // gõ lặp phím dấu: hủy dấu, giữ ký tự vừa gõ (os + s -> oss)
+                tone = 0; toneBlocked = true
+                letters.append(Letter(b: lc, upper: up, m: 0)); return
+            }
+            tone = t; return
+        }
         if lc == "z", hasVowel, tone != 0 { tone = 0; return }
         if lc == "w" {
             let n = letters.count
