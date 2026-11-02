@@ -1,3 +1,4 @@
 build/
 .mcache/
 .DS_Store
+dist/

@@ -24,3 +24,10 @@ Sau đó đăng xuất/đăng nhập lại, vào Cài đặt → Bàn phím → 
 VNI, hủy dấu bằng gõ lặp, tùy chỉnh phím tắt.
 
 Giấy phép: MIT
+
+## Phát hành cho máy khác
+```sh
+./package.sh   # tạo dist/VietIME-macOS.zip (universal arm64 + x86_64)
+```
+Đưa file zip lên GitHub Releases. Người dùng giải nén, bấm chuột phải `Cai-dat.command` → Mở.
+Muốn không bị macOS cảnh báo: ký bằng Developer ID (`SIGN_ID="Developer ID Application: ..." ./package.sh`) rồi notarize.
