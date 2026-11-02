@@ -11,41 +11,86 @@ struct Telex {
 
     static let toneKeys: [Character: Int] = ["s": 1, "f": 2, "r": 3, "x": 4, "j": 5]
 
-    mutating func feed(_ ch: Character) {
+    var vni = false      // false: Telex, true: VNI
+    var wToU = true      // Telex: w đứng một mình thành ư
+
+    /// Cụm nguyên âm cuối từ (có thể theo sau là phụ âm cuối)
+    private func lastCluster() -> [Int] {
+        guard let end = letters.lastIndex(where: { isV($0.b) }),
+              letters.suffix(from: end+1).allSatisfy({ !isV($0.b) }) else { return [] }
+        var c = [end]; var i = end - 1
+        while i >= 0, isV(letters[i].b) { c.insert(i, at: 0); i -= 1 }
+        return c
+    }
+
+    private mutating func applyHorn() -> Bool { // ơ, ư, ươ
+        let c = lastCluster()
+        for k in 0..<max(0, c.count - 1) {
+            let u = c[k], o = c[k+1]
+            if letters[u].b == "u", letters[o].b == "o", letters[u].m == 0, letters[o].m == 0,
+               !(u >= 1 && letters[u-1].b == "q") {
+                letters[u].m = 2; letters[o].m = 2; return true
+            }
+        }
+        if let j = c.last, "ou".contains(letters[j].b), letters[j].m == 0 || letters[j].m == 1,
+           !(letters[j].b == "u" && j >= 1 && letters[j-1].b == "q") {
+            letters[j].m = 2; return true
+        }
+        return false
+    }
+    private mutating func applyBreve() -> Bool { // ă
+        guard let j = lastCluster().last, letters[j].b == "a", letters[j].m == 0 || letters[j].m == 1 else { return false }
+        letters[j].m = 3; return true
+    }
+    private mutating func applyCircumflex(_ v: Character?) -> Bool { // â ê ô (VNI)
+        guard let j = lastCluster().last(where: { "aeo".contains(letters[$0].b) && letters[$0].m == 0 && (v == nil || letters[$0].b == v!) }) else { return false }
+        letters[j].m = 1; return true
+    }
+    private mutating func setTone(_ t: Int, _ lc: Character, _ up: Bool) -> Bool {
+        guard letters.contains(where: { isV($0.b) }), !toneBlocked else { return false }
+        if tone == t { // gõ lặp: hủy dấu, giữ ký tự vừa gõ (os + s -> oss)
+            tone = 0; toneBlocked = true
+            letters.append(Letter(b: lc, upper: up, m: 0)); return true
+        }
+        tone = t; return true
+    }
+
+    /// Nhận một phím. Trả về false nếu phím không có tác dụng với từ hiện tại (VNI: số thường).
+    @discardableResult
+    mutating func feed(_ ch: Character) -> Bool {
         let lc = ch.lowercased().first ?? ch
         let up = ch.isUppercase
-        let hasVowel = letters.contains { isV($0.b) }
-        if let t = Telex.toneKeys[lc], hasVowel, !toneBlocked {
-            if tone == t { // gõ lặp phím dấu: hủy dấu, giữ ký tự vừa gõ (os + s -> oss)
-                tone = 0; toneBlocked = true
-                letters.append(Letter(b: lc, upper: up, m: 0)); return
-            }
-            tone = t; return
-        }
-        if lc == "z", hasVowel, tone != 0 { tone = 0; return }
+        if vni { return feedVNI(ch, lc, up) }
+        if let t = Telex.toneKeys[lc], setTone(t, lc, up) { return true }
+        if lc == "z", letters.contains(where: { isV($0.b) }), tone != 0 { tone = 0; return true }
         if lc == "w" {
-            if let i = letters.lastIndex(where: { isV($0.b) }), i >= 1,
-               letters.suffix(from: i+1).allSatisfy({ !isV($0.b) }),
-               letters[i].b == "o", letters[i-1].b == "u", letters[i].m == 0, letters[i-1].m == 0,
-               !(i >= 2 && letters[i-2].b == "q") {
-                letters[i].m = 2; letters[i-1].m = 2; return
-            }
-            if let i = letters.lastIndex(where: { isV($0.b) }), letters.suffix(from: i+1).allSatisfy({ !isV($0.b) }) {
-                let l = letters[i]
-                if l.m == 0 || l.m == 1 {
-                    if l.b == "a" { letters[i].m = 3; return }
-                    if l.b == "o" || l.b == "u" { letters[i].m = 2; return }
-                }
-            }
-            letters.append(Letter(b: "u", upper: up, m: 2)); return
+            if applyHorn() || applyBreve() { return true }
+            if wToU { letters.append(Letter(b: "u", upper: up, m: 2)); return true }
+            letters.append(Letter(b: "w", upper: up, m: 0)); return true
         }
         if lc == "a" || lc == "e" || lc == "o" {
-            if let l = letters.last, l.b == lc, l.m == 0 {
-                letters[letters.count-1].m = 1; return
-            }
+            if let l = letters.last, l.b == lc, l.m == 0 { letters[letters.count-1].m = 1; return true }
         }
-        if lc == "d", let l = letters.last, l.b == "d", l.m == 0 { letters[letters.count-1].m = 4; return }
-        letters.append(Letter(b: lc, upper: up, m: 0))
+        if lc == "d", let l = letters.last, l.b == "d", l.m == 0 { letters[letters.count-1].m = 4; return true }
+        letters.append(Letter(b: lc, upper: up, m: 0)); return true
+    }
+
+    private mutating func feedVNI(_ ch: Character, _ lc: Character, _ up: Bool) -> Bool {
+        switch ch {
+        case "1", "2", "3", "4", "5": return setTone(Int(String(ch))!, ch, false)
+        case "0":
+            guard tone != 0 else { return false }
+            tone = 0; return true
+        case "6": return applyCircumflex(nil)
+        case "7": return applyHorn()
+        case "8": return applyBreve()
+        case "9":
+            guard let i = letters.firstIndex(where: { $0.b == "d" && $0.m == 0 }) else { return false }
+            letters[i].m = 4; return true
+        default:
+            guard ch.isLetter else { return false }
+            letters.append(Letter(b: lc, upper: up, m: 0)); return true
+        }
     }
 
     func render() -> String {
