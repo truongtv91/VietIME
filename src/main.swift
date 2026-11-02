@@ -11,8 +11,25 @@ var server: IMKServer?
 var statusItem: NSStatusItem?
 var vietItem: NSMenuItem?
 var engItem: NSMenuItem?
+/// Vẽ biểu tượng khay dạng template: nền bo tròn, chữ đục rỗng (đồng bộ với icon hệ thống)
+func trayIcon(_ text: String) -> NSImage {
+    let size = NSSize(width: 26, height: 16)
+    let img = NSImage(size: size, flipped: false) { rect in
+        let path = NSBezierPath(roundedRect: rect.insetBy(dx: 0.5, dy: 0.5), xRadius: 4.5, yRadius: 4.5)
+        NSColor.black.setFill(); path.fill()
+        NSGraphicsContext.current?.compositingOperation = .clear
+        let str = NSAttributedString(string: text, attributes: [
+            .font: NSFont.systemFont(ofSize: 11, weight: .bold), .kern: 0.3, .foregroundColor: NSColor.black])
+        let sz = str.size()
+        str.draw(at: NSPoint(x: (rect.width - sz.width) / 2, y: (rect.height - sz.height) / 2))
+        return true
+    }
+    img.isTemplate = true
+    return img
+}
 func refreshStatus() {
-    statusItem?.button?.title = vietEnabled ? "VN" : "EN"
+    statusItem?.button?.title = ""
+    statusItem?.button?.image = trayIcon(vietEnabled ? "VN" : "EN")
     vietItem?.state = vietEnabled ? .on : .off
     engItem?.state = vietEnabled ? .off : .on
 }
