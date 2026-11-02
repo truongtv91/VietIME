@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>CFBundleIdentifier</key><string>com.truongta.inputmethod.VietIME</string>
-<key>CFBundleDisplayName</key><string>VietIME</string>
+<key>CFBundleDisplayName</key><string>VNMIE</string>
 <key>CFBundleDevelopmentRegion</key><string>en</string>
 <key>CFBundleLocalizations</key><array><string>en</string><string>vi</string></array>
 <key>CFBundleName</key><string>VietIME</string>
@@ -20,7 +20,7 @@
    <key>TISInputSourceID</key><string>com.truongta.inputmethod.VietIME.Telex</string>
    <key>TISIntendedLanguage</key><string>vi</string>
    <key>tsInputModeScriptKey</key><string>smRoman</string>
-   <key>TISInputSourceName</key><string>VietIME</string>
+   <key>TISInputSourceName</key><string>VNMIE</string>
    <key>tsInputModeDefaultStateKey</key><true/>
    <key>tsInputModePrimaryInputModeKey</key><true/>
    <key>tsInputModeMenuIconFileKey</key><string>icon.tiff</string>
