@@ -12,7 +12,7 @@ struct Telex {
     static let toneKeys: [Character: Int] = ["s": 1, "f": 2, "r": 3, "x": 4, "j": 5]
 
     mutating func feed(_ ch: Character) {
-        let lc = Character(ch.lowercased())
+        let lc = ch.lowercased().first ?? ch
         let up = ch.isUppercase
         let hasVowel = letters.contains { isV($0.b) }
         if let t = Telex.toneKeys[lc], hasVowel, !toneBlocked {
@@ -24,9 +24,11 @@ struct Telex {
         }
         if lc == "z", hasVowel, tone != 0 { tone = 0; return }
         if lc == "w" {
-            let n = letters.count
-            if n >= 2, letters[n-1].b == "o", letters[n-2].b == "u", letters[n-1].m == 0, letters[n-2].m == 0 {
-                letters[n-1].m = 2; letters[n-2].m = 2; return
+            if let i = letters.lastIndex(where: { isV($0.b) }), i >= 1,
+               letters.suffix(from: i+1).allSatisfy({ !isV($0.b) }),
+               letters[i].b == "o", letters[i-1].b == "u", letters[i].m == 0, letters[i-1].m == 0,
+               !(i >= 2 && letters[i-2].b == "q") {
+                letters[i].m = 2; letters[i-1].m = 2; return
             }
             if let i = letters.lastIndex(where: { isV($0.b) }), letters.suffix(from: i+1).allSatisfy({ !isV($0.b) }) {
                 let l = letters[i]
@@ -38,9 +40,8 @@ struct Telex {
             letters.append(Letter(b: "u", upper: up, m: 2)); return
         }
         if lc == "a" || lc == "e" || lc == "o" {
-            if let i = letters.lastIndex(where: { $0.b == lc && $0.m == 0 }),
-               letters.suffix(from: i+1).allSatisfy({ !isV($0.b) }) {
-                letters[i].m = 1; return
+            if let l = letters.last, l.b == lc, l.m == 0 {
+                letters[letters.count-1].m = 1; return
             }
         }
         if lc == "d", let l = letters.last, l.b == "d", l.m == 0 { letters[letters.count-1].m = 4; return }

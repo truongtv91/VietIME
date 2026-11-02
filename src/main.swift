@@ -1,12 +1,6 @@
 import Cocoa
 import InputMethodKit
 
-func dlog(_ m: String) {
-    let line = "\(Date()) \(m)\n"
-    if let h = FileHandle(forWritingAtPath: "/tmp/vietime.log") { h.seekToEndOfFile(); h.write(line.data(using: .utf8)!); h.closeFile() }
-    else { try? line.write(toFile: "/tmp/vietime.log", atomically: false, encoding: .utf8) }
-}
-
 var server: IMKServer?
 var statusItem: NSStatusItem?
 var vietItem: NSMenuItem?
@@ -66,10 +60,8 @@ class VietController: IMKInputController {
         }
     }
     override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
-        dlog("handle keyCode=\(event?.keyCode ?? 0) chars=\(event?.characters ?? "")")
         guard let event = event, event.type == .keyDown else { return false }
         let f = event.modifierFlags
-        guard event.type == .keyDown else { return false }
         // Option+Z: chuyển Việt/Anh
         if event.keyCode == 6, f.intersection([.control, .shift, .command, .option]) == [.option] {
             flush(sender as Any)
@@ -77,16 +69,20 @@ class VietController: IMKInputController {
             return true
         }
         if !vietEnabled { flush(sender as Any); return false }
-        if f.contains(.command) || f.contains(.control) || f.contains(.option) { flush(sender); return false }
-        guard let chars = event.characters, let ch = chars.first, chars.count == 1 else { flush(sender); return false }
+        if f.contains(.command) || f.contains(.control) || f.contains(.option) { flush(sender as Any); return false }
+        guard let chars = event.characters, let ch = chars.first, chars.count == 1 else { flush(sender as Any); return false }
         if event.keyCode == 51 { // backspace
             if raw.isEmpty { return false }
-            raw.removeLast(); show(sender); return true
+            raw.removeLast()
+            if raw.isEmpty { // hết chữ: xoá vùng gạch chân
+                client()?.setMarkedText("", selectionRange: NSRange(location: 0, length: 0), replacementRange: NSRange(location: NSNotFound, length: 0))
+            } else { show(sender as Any) }
+            return true
         }
         if ch.isLetter && ch.isASCII {
-            raw.append(ch); show(sender); return true
+            raw.append(ch); show(sender as Any); return true
         }
-        flush(sender)
+        flush(sender as Any)
         return false
     }
     override func commitComposition(_ sender: Any!) { flush(sender as Any) }
@@ -103,7 +99,7 @@ engItem = NSMenuItem(title: "English (EN)", action: #selector(MenuActions.setEng
 vietItem?.target = menuActions; engItem?.target = menuActions
 menu.addItem(vietItem!); menu.addItem(engItem!)
 menu.addItem(.separator())
-let quitItem = NSMenuItem(title: "Thoát VietIME", action: #selector(MenuActions.quit), keyEquivalent: "")
+let quitItem = NSMenuItem(title: "Thoát VNMIE", action: #selector(MenuActions.quit), keyEquivalent: "")
 quitItem.target = menuActions
 menu.addItem(quitItem)
 statusItem?.menu = menu

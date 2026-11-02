@@ -19,6 +19,7 @@ Sau đó đăng xuất/đăng nhập lại, vào Cài đặt → Bàn phím → 
 - `src/main.swift` — IMKInputController, menu, phím tắt
 - `src/Info.plist`, `src/*.lproj` — cấu hình và tên hiển thị
 - `build.sh` — build, ký ad-hoc, cài đặt
+- `test.sh` — kiểm thử engine Telex (40 ca)
 
 ## Chưa có
 VNI, hủy dấu bằng gõ lặp, tùy chỉnh phím tắt.
